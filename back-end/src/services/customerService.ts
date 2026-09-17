@@ -1,13 +1,13 @@
 
-import * as repository from "../repositories/customerRepository.js";
+import * as repository from "../repositories/customerRepository";
 
 
-import type { Customer } from "../generated/prisma/client.ts";
-import type { CreateCustomerDto } from "../dto/customer/createCustomerDto.js";
-import type { UpdateCustomerDto } from "../dto/customer/updateCustomerDto.js";
+import type { Customer } from "../../generated/prisma/client";
+import type { CreateCustomerDto } from "../dto/customer/createCustomerDto";
+import type { UpdateCustomerDto } from "../dto/customer/updateCustomerDto";
 
 
-import { NotFoundError } from "../errors/NotFoundError.ts";
+import { NotFoundError } from "../errors/NotFoundError";
 
 
 export async function findAll(): Promise<Customer[]> {
