@@ -8,8 +8,16 @@ import usersRouter from './routes/users'
 import customersRouter from './routes/customers'
 import carsRouter from './routes/cars'
 
+import cors from 'cors'
 
 const app = express()
+
+app.use(cors({
+ origin: (process.env.ALLOWED_ORIGINS ?? '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter((origin) => origin.length > 0),
+}))
 
 
 app.use(logger('dev'))

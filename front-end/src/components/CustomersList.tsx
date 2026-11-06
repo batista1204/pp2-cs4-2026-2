@@ -1,13 +1,54 @@
+import { useEffect, useState } from 'react'
 import type { Customer } from '../types/Customer'
 
-type CustomerListProps = {
-  list?: Customer[]
-}
+export function CustomersList() {
+  const [customers, setCustomers] = useState<Customer[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-export function CustomersList({ list = [] }: CustomerListProps) {
+  useEffect(() => {
+    const controller = new AbortController()
+
+    async function fetchCustomers() {
+      try {
+        const apiBase = import.meta.env.VITE_API_BASE ?? ''
+        const response = await fetch(`${apiBase}/customers`, {
+          signal: controller.signal,
+        })
+
+        if (!response.ok) {
+          throw new Error(`A API respondeu com status ${response.status}.`)
+        }
+
+        const data: unknown = await response.json()
+        if (!Array.isArray(data)) {
+          throw new Error('A resposta da API não contém uma lista de clientes.')
+        }
+
+        setCustomers(data as Customer[])
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          setError(
+            error instanceof Error
+              ? error.message
+              : 'Não foi possível carregar os clientes.',
+          )
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoading(false)
+        }
+      }
+    }
+
+    void fetchCustomers()
+
+    return () => controller.abort()
+  }, [])
+
   return (
     <>
-      <p className="text-secondary">Total de clientes: {list.length}</p>
+      <p className="text-secondary">Total de clientes: {customers.length}</p>
 
       <div className="table-responsive">
         <table className="table table-striped table-hover align-middle">
@@ -24,7 +65,7 @@ export function CustomersList({ list = [] }: CustomerListProps) {
           </thead>
 
           <tbody>
-            {list.map((customer) => (
+            {customers.map(customer => (
               <tr key={customer.id}>
                 <td>{customer.id}</td>
                 <td>{customer.name}</td>
@@ -36,7 +77,7 @@ export function CustomersList({ list = [] }: CustomerListProps) {
               </tr>
             ))}
 
-            {list.length === 0 && (
+            {!loading && !error && customers.length === 0 && (
               <tr>
                 <td colSpan={7} className="text-center text-secondary">
                   Nenhum cliente cadastrado.
@@ -46,7 +87,12 @@ export function CustomersList({ list = [] }: CustomerListProps) {
           </tbody>
         </table>
       </div>
+      {loading && <p role="status">Carregando clientes...</p>}
+      {error && (
+        <p className="text-danger" role="alert">
+          Erro ao carregar clientes: {error}
+        </p>
+      )}
     </>
   )
 }
-''
